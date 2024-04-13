@@ -37,6 +37,6 @@ app.delete("/delete-user/:id", (req, res) => {
     }
 });
 
-app.listen(6000,() =>{
-    console.log("Server is listening on port 6000.");
+app.listen(4000,() =>{
+    console.log("Server is listening on port 4000.");
 });
