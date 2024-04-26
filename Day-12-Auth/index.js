@@ -2,12 +2,17 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import AllRoutes from './routes/index.js';
+import cors from "cors";
 
-
+var corsOptions = {
+    origin: "http://localhost:3000",
+    credentials: true,
+  };
 
 const app = express();
 app.use(express.json());
 dotenv.config();
+app.use(cors());
 
 
 
@@ -21,7 +26,7 @@ mongoose.connect(process.env.MONGODB_URL).then(()=>{
     console.log("DB Connected.")
 })
 
-app.listen(3000, ()=>{
-    console.log("Listening on port 3000.")
+app.listen(3001, ()=>{
+    console.log("Listening on port 3001.")
 });
 
