@@ -75,7 +75,7 @@ export const Login = async (req, res) => {
       });
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    console.log(token, "token");
+    console.log(token,"token");
     // token -> cookie -> localStorage, cookies
     // userData  -> context -> context, redux
     // compare user password with stored password in db
