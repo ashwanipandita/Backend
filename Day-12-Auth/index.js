@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import AllRoutes from "./routes/index.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 var corsOptions = {
   origin: "http://localhost:3000",
@@ -10,6 +11,7 @@ var corsOptions = {
 };
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 dotenv.config();
 app.use(cors(corsOptions));
 

@@ -49,47 +49,84 @@ export const Register = async (req, res) => {
   }
 };
 
+// export const Login = async (req, res) => {
+//   try {
+//     const { email, password } = req.body.userData;
+//     if (!email || !password) {
+//       return res.json({ success: false, message: "All fields are required." });
+//     }
+
+//     const user = await UserSchema.findOne({ email: email });
+//     if (!user) {
+//       return res.json({
+//         success: false,
+//         message: "User not exist, Please check your email.",
+//       });
+//     }
+
+//     // console.log(user, "user");
+
+//     const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+//     if (!isPasswordCorrect) {
+//       return res.json({
+//         success: false,
+//         message: "Password is wrong.",
+//       });
+//     }
+//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+//     console.log(token,"token");
+//     // token -> cookie -> localStorage, cookies
+//     // userData  -> context -> context, redux
+//     // compare user password with stored password in db
+//     res.cookie("token", token);
+//     return res.json({
+//       success: true,
+//       message: "Login Successfull.",
+//       userData: user,
+//     });
+//   } catch (error) {
+//     console.log(error, "error");
+//     return res.json({ error, success: false });
+//   }
+// };
+
+
 export const Login = async (req, res) => {
   try {
-    const { email, password } = req.body.userData;
-    if (!email || !password) {
-      return res.json({ success: false, message: "All fields are required." });
-    }
+      const{email, password} = req.body.userData;
+      if(!email || !password){
+          return res.json({ success: false, message: "All Fields Are Required"})
+      }
 
-    const user = await UserSchema.findOne({ email: email });
-    if (!user) {
-      return res.json({
-        success: false,
-        message: "User not exist, Please check your email.",
-      });
-    }
+      const user = await UserSchema.findOne({email: email});
+      if(!user){
+          return res.json({
+              success: false,
+              message: "User is not exist, Please check your email"
+          });
+      }
 
-    // console.log(user, "user");
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+  
+      if(!isPasswordValid){
+          return res.json({success: false, message: "Invalid password Please try again later"})
+      }
 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
+      const token = jwt.sign({id: user._id}, process.env.JWT_SECRET, {expiresIn: '10sec'}) //Setting expiry time 1 hour 
+      // console.log(token, "token");
+      res.cookie("token", token)
 
-    if (!isPasswordCorrect) {
-      return res.json({
-        success: false,
-        message: "Password is wrong.",
-      });
-    }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    console.log(token,"token");
-    // token -> cookie -> localStorage, cookies
-    // userData  -> context -> context, redux
-    // compare user password with stored password in db
-    res.cookie("token", token);
-    return res.json({
-      success: true,
-      message: "Login Successfull.",
-      userData: user,
-    });
+      return res.json({success: true, message:"Login Successfull", userData: user,})
+      
+      // res.send("Login");
+
   } catch (error) {
-    console.log(error, "error");
-    return res.json({ error, success: false });
+      console.log(error, "error")
+      return res.json({error, success: false});
   }
-};
+}
+
 
 
 // 1. create controller for validate-token 
@@ -97,3 +134,61 @@ export const Login = async (req, res) => {
 // 3. decrypt token by using jwt, id
 // 4. use id to find user from mongodb findById
 // 5.response , userDate, 
+
+// export const validateToken = (req,res)=>{
+//   try{
+// const token = req.cookies.token;
+// console.log(token)
+// res.send(true);
+//   }catch (error) {
+//     console.log(error, "error");
+//     return res.json({ error, success: false });
+//   }
+// }
+
+
+export const validateToken = async (req, res) =>{
+  try {
+      const token = req.cookies.token;
+      console.log(token)
+      if(!token){
+          return res.json({
+              success: false,
+              message: "Invalid Token"
+          });
+      }
+      const decodedData = await jwt.verify(token, process.env.JWT_SECRET) 
+      // console.log(decodedData);
+      if(!decodedData.id){
+          return res.json({
+              success: false,
+              message: "Token Expired"
+          });
+      }
+
+      const currentTime = Math.floor(Date.now() / 1000);
+      if(decodedData.exp < currentTime){
+          return res.json({
+              success: false,
+              message: "Token Expired"
+          });
+      }
+
+      const user = await UserSchema.findById(decodedData.id);
+      console.log(user)
+      if(!user){
+          return res.json({
+              success: false,
+              message: "Invalid Token"
+          })
+      }
+
+      return res.json({user, success: true})
+
+  } catch (error) {
+      console.log(error, "error")
+      return res.json({error, success: false});
+  }
+}
+
+
