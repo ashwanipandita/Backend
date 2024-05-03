@@ -32,6 +32,30 @@ return res.json({success:true,error:"Product successfully stored"});
     }
 });
 
+app.get("/get-product", async function (req,res){
+    try{
+        const pipeline = [
+            {$match:{ category:"electronics", price:{$gt:9000}}},
+            {
+                $group:{
+                    _id : "$product",
+                    totalQuantity : {$sum:"$quantity"},
+                    totalPrice:{$sum:{$multiply: ["$quantity","$price"]}},
+                },
+            },
+        ];
+
+        const aggResult = await ProductSchema.aggregate(pipeline);
+
+        return res.json ({
+            success: true,
+            message:"Products Aggregated",
+            data: aggResult,
+        });
+    } catch (error) {
+        return res.json({success:false,message:"Error",error});
+    }
+})
 
 mongoose.connect(process.env.MONGODB_URL).then(()=>{
   console.log("DB Connected");  
