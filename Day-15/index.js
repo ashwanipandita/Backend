@@ -35,7 +35,7 @@ return res.json({success:true,error:"Product successfully stored"});
 app.get("/get-product", async function (req,res){
     try{
         const pipeline = [
-            {$match:{ category:"electronics", price:{$gt:9000}}},
+            {$match:{ category:"electronics", price:{$gt:98000}}},
             {
                 $group:{
                     _id : "$product",
