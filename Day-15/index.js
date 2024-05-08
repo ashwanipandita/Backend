@@ -7,6 +7,10 @@ const app = express();
 dotenv.config()
 app.use(express.json());
 import Joi from "joi";
+import UserSchema from "./schemas/user.schema.js";
+import bcrypt from "bcrypt";
+
+
 
 app.get('/',(req,res)=>{
     res.send("Working")
@@ -14,8 +18,8 @@ app.get('/',(req,res)=>{
 
 app.post('/add-product',async(req,res)=>{
     try{
-const {name,category,price,quantity,tags}= req.body;
-if(!name|| !category|| !price|| !quantity || !tags){
+const {name,category,price,quantity,tags,userId}= req.body;
+if(!name|| !category|| !price|| !quantity || !tags || !userId){
     return res.json({success:false,error:"All fields are required"});
 }
 
@@ -25,6 +29,7 @@ category : category,
 price: price,
 quantity : quantity,
 tags : tags,
+user : userId,
 });
 
 await newProduct.save();
@@ -124,6 +129,65 @@ app.post("/Joi-validate", async (req, res) => {
     }
   });
 
+  app.post("/get-products-by-user", async (req, res) => {
+    try {
+      const { userId } = req.body;
+      const products = await ProductSchema.find({ user: userId }).populate(
+        "user"
+      );
+      res.send(products);
+    } catch (error) {
+      console.log(error);
+      return res.json({ success: false, error });
+    }
+  });
+  
+  app.post("/register", async (req, res) => {
+    try {
+      const { name, email, password, confirmPassword } = req.body;
+      if (!name || !email || !password || !confirmPassword) {
+        return res.json({ success: false, message: "All fields are required." });
+      }
+      if (password !== confirmPassword) {
+        return res.json({
+          success: false,
+          message: "Password and Confirm is not matched.",
+        });
+      }
+  
+      const isEmailExists = await UserSchema.findOne({ email: email });
+      // console.log(isEmailExists, "isEmailExists");
+      if (isEmailExists) {
+        return res.json({
+          success: false,
+          message: "Email is alreadly exist, Please use another one.",
+        });
+      }
+  
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      // 1st type to store data in mongodb
+      // const newUser = await UserSchema.create({
+      //   name: name,
+      //   email: email,
+      //   password: hashedPassword,
+      // });
+  
+      // 2nd type to store data in mongodb
+      const newUser = new UserSchema({
+        name: name,
+        email: email,
+        password: hashedPassword,
+      });
+  
+      await newUser.save();
+  
+      return res.json({ success: true, message: "Registeration Completed." });
+    } catch (error) {
+      console.log(error, "error");
+      return res.json({ error, success: false });
+    }
+  });
 
 mongoose.connect(process.env.MONGODB_URL).then(()=>{
   console.log("DB Connected");  
