@@ -4,13 +4,20 @@ import dotenv from "dotenv";
 import {ProductSchema,ProductSchema2} from "./schemas/product.schema.js";
 // import { valid } from "joi";
 const app = express();
+var corsOptions = {
+  origin : "http://localhost:3000",
+ credentials:true,
+ };
+
+ 
 dotenv.config()
 app.use(express.json());
 import Joi from "joi";
 import UserSchema from "./schemas/user.schema.js";
 import bcrypt from "bcrypt";
+import cors from "cors";
 
-
+app.use(cors());
 
 app.get('/',(req,res)=>{
     res.send("Working")
@@ -18,7 +25,8 @@ app.get('/',(req,res)=>{
 
 app.post('/add-product',async(req,res)=>{
     try{
-const {name,category,price,quantity,tags,userId}= req.body;
+const {name,category,price,quantity,tags}= req.body.productData;
+const {userId} = req.body;
 if(!name|| !category|| !price|| !quantity || !tags || !userId){
     return res.json({success:false,error:"All fields are required"});
 }
