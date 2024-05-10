@@ -72,7 +72,7 @@ app.get("/get-product", async function (req,res){
         return res.json({success:false,message:"Error",error});
     }
 })
-app.post("/get-products", async (req, res) => {
+app.post("/get-products-by-category-price", async (req, res) => {
     try {
         const agrregation = [
             {
@@ -191,6 +191,17 @@ app.post("/Joi-validate", async (req, res) => {
       await newUser.save();
   
       return res.json({ success: true, message: "Registeration Completed." });
+    } catch (error) {
+      console.log(error, "error");
+      return res.json({ error, success: false });
+    }
+  });
+
+
+  app.get("/get-products", async (req, res) => {
+    try {
+      const products = await ProductSchema.find({});
+      return res.json({ success: true, products: products });
     } catch (error) {
       console.log(error, "error");
       return res.json({ error, success: false });
