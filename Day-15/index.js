@@ -2,6 +2,13 @@ import  express  from "express";
 import mongoose, { Schema } from "mongoose";
 import dotenv from "dotenv";
 import {ProductSchema,ProductSchema2} from "./schemas/product.schema.js";
+import Joi from "joi";
+import UserSchema from "./schemas/user.schema.js";
+import bcrypt from "bcrypt";
+import cors from "cors";
+import jwt  from "jsonwebtoken";
+import cookieParser from "cookie-parser";
+import { Login } from "../Day-12-Auth/controllers/auth.controllers.js";
 // import { valid } from "joi";
 const app = express();
 var corsOptions = {
@@ -12,12 +19,12 @@ var corsOptions = {
  
 dotenv.config()
 app.use(express.json());
-import Joi from "joi";
-import UserSchema from "./schemas/user.schema.js";
-import bcrypt from "bcrypt";
-import cors from "cors";
 
-app.use(cors());
+app.use(cookieParser());
+
+
+
+app.use(cors(corsOptions));
 
 app.get('/',(req,res)=>{
     res.send("Working")
@@ -152,7 +159,7 @@ app.post("/Joi-validate", async (req, res) => {
   
   app.post("/register", async (req, res) => {
     try {
-      const { name, email, password, confirmPassword } = req.body;
+      const { name, email, password, confirmPassword } = req.body.userData;
       if (!name || !email || !password || !confirmPassword) {
         return res.json({ success: false, message: "All fields are required." });
       }
@@ -196,6 +203,7 @@ app.post("/Joi-validate", async (req, res) => {
       return res.json({ error, success: false });
     }
   });
+  
 
 
   app.get("/get-products", async (req, res) => {
@@ -207,6 +215,93 @@ app.post("/Joi-validate", async (req, res) => {
       return res.json({ error, success: false });
     }
   });
+
+
+  app.post("/login", async (req, res) => {
+    try {
+      const { email, password } = req.body.userData;
+      if (!email || !password) {
+        return res.json({ success: false, message: "All fields are required." });
+      }
+  
+      const user = await UserSchema.findOne({ email: email });
+      if (!user) {
+        return res.json({
+          success: false,
+          message: "User not exist, Please check your email.",
+        });
+      }
+  
+      // console.log(user, "user");
+  
+      const isPasswordCorrect = await bcrypt.compare(password, user.password);
+      
+      if (!isPasswordCorrect) {
+        return res.json({
+          success: false,
+          message: "Password is wrong.",
+        });
+      }
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      console.log(token, "token");
+      // token -> cookie -> localStorage, cookies
+      // userData  -> context -> context, redux
+      // compare user password with stored password in db
+
+      
+      res.cookie("token", token);
+      return res.json({
+        success: true,
+        message: "Login Successfull.",
+        userData: user,
+        });
+        
+       
+    } catch (error) {
+      console.log(error, "error");
+      return res.json({ error, success: false });
+
+
+    }
+  });
+
+
+
+  app.get("/validate-token", async (req, res) => {
+    try {
+      const token = req?.cookies?.token;
+      if (!token) {
+        return res.json({
+          success: false,
+          message: "Token not found.",
+        });
+      }
+      const decodedData = await jwt.verify(token, process.env.JWT_SECRET);
+      // console.log(decodedData);
+      if (!decodedData.id) {
+        return res.json({
+          success: false,
+          message: "Token is expired.",
+        });
+      }
+  
+      const user = await UserSchema.findById(decodedData.id);
+  
+      // console.log(user);
+      if (!user) {
+        return res.json({
+          success: false,
+          message: "Token is not valid.",
+        });
+      }
+  
+      return res.json({ user, success: true });
+    } catch (error) {
+      console.log(error, "error");
+      return res.json({ error, success: false });
+    }
+  });
+  
 
 mongoose.connect(process.env.MONGODB_URL).then(()=>{
   console.log("DB Connected");  
