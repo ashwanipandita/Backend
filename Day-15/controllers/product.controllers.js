@@ -56,10 +56,11 @@ export const getProductsByCategoryPrice = async function (req,res){
 export const getProductsBySeller = async (req, res) => {
     try {
       const { userId } = req.body;
+      console.log(userId,"userId")
       const products = await ProductSchema.find({ user: userId }).populate(
         "user"
       );
-      res.send(products);
+      res.json({success: true,products});
     } catch (error) {
       console.log(error);
       return res.json({ success: false, error });
