@@ -1,3 +1,6 @@
+import { ProductSchema } from "../schemas/product.schema.js";
+
+
 export const addProduct = async(req,res)=>{
     try{
 const {name,category,price,quantity,tags}= req.body.productData;
