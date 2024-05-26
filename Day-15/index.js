@@ -10,7 +10,7 @@ import AllRoutes from "./routes/index.js"
 // import { valid } from "joi";
 const app = express();
 var corsOptions = {
-  origin : ["http://localhost:3000","https://backend-o4io.onrender.com"],
+  origin : ["http://localhost:3000","https://reactmain.vercel.app"],
  credentials:true,
  };
 
