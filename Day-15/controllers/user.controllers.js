@@ -87,7 +87,7 @@ export const login = async (req, res) => {
       return res.json({
         success: true,
         message: "Login Successfull.",
-        userData: {name: user.name, email:user.email, role :user.role },
+        userData: {name: user.name, email:user.email, role :user.role, _id : user._id, },
         });
         
        
@@ -143,4 +143,52 @@ export const validateToken = async (req, res) => {
       console.log(error,"error");
       return res.json({error,success : false});
     }
-  }
+  };
+
+
+  export const addToCart = async (req,res) => {
+    try{
+      const { userId,productId } = req.body;
+      const user = await UserSchema.findByIdAndUpdate(
+        userId,
+        {
+          $addToSet : {cart : productId},
+        },
+        
+        {new:true}
+        );
+      if(!user){
+        return res.json({success : false, message :"User Not Found"});
+      }
+      console.log(user,"user");
+      return res.json ({success: true,message:"Product Successfully Added To Cart"})
+    }catch (error) {
+      console.log(error,"error");
+      return res.json ({error, success : false});
+    }
+  };
+
+  
+  
+  
+  export const addToWishlist = async (req,res) => {
+    try{
+      const { userId,productId } = req.body;
+      const user = await UserSchema.findByIdAndUpdate(
+        userId,
+        {
+          $addToSet : {wishlist : productId},
+        },
+        
+        {new:true}
+        );
+      if(!user){
+        return res.json({success : false, message :"User Not Found"});
+      }
+      console.log(user,"user");
+      return res.json ({success: true,message:"Product Successfully Added To Wishlist"})
+    }catch (error) {
+      console.log(error,"error");
+      return res.json ({error, success : false});
+    }
+  };
