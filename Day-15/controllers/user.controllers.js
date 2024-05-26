@@ -2,6 +2,7 @@ import UserSchema from "../schemas/user.schema.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
 
+
 export const register = async (req, res) => {
     try {
       const { name, email, password, confirmPassword,role } = req.body.userData;
@@ -192,3 +193,45 @@ export const validateToken = async (req, res) => {
       return res.json ({error, success : false});
     }
   };
+
+
+
+  export const getCartProducts = async (req, res) => {
+    try {
+      const { userId } = req.params;
+  
+      const user = await UserSchema.findById(userId).populate("cart");
+      if (!user) {
+        return res.json({ success: false, message: "User not found." });
+      }
+  
+      return res.json({ success: true, cart: user.cart });
+    } catch (error) {
+      console.log(error, "error");
+      return res.json({ error, success: false });
+    }
+  };
+
+
+
+  // Add the checkout function
+export const checkout = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const user = await UserSchema.findByIdAndUpdate(
+      userId,
+      { $set: { cart: [] } },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.json({ success: false, message: "User not found." });
+    }
+
+    return res.json({ success: true, message: "Items successfully checked out." });
+  } catch (error) {
+    console.log(error, "error");
+    return res.json({ error, success: false });
+  }
+};
